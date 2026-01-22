@@ -30,3 +30,11 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+counter/mas_state.gob
+counter/counter
+boss/world.gob
+boss/boss
+gui-log/mas_state.gob
+gui-log/gui-log
+gui-log/world.gob
