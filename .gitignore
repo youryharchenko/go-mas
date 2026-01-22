@@ -38,3 +38,8 @@ boss/boss
 gui-log/mas_state.gob
 gui-log/gui-log
 gui-log/world.gob
+maze1/maze1
+maze1/mas_state.gob
+maze2/maze2
+maze3/maze3
+

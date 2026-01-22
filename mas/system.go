@@ -48,9 +48,9 @@ func NewSystem(opts ...Option) *System {
 	s := &System{
 		agents:   make(map[string]Agent),
 		registry: make(map[string]chan Envelope),
-		filename: "mas_state.gob", // Дефолтне ім'я файлу
-		ctx:      defaultCtx,
-		cancel:   defaultCancel,
+		//filename: "mas_state.gob", // Дефолтне ім'я файлу
+		ctx:    defaultCtx,
+		cancel: defaultCancel,
 	}
 
 	// 2. Застосування опцій користувача
@@ -67,6 +67,11 @@ func (s *System) Context() context.Context {
 
 // Startup - завантаження світу
 func (s *System) Startup() error {
+
+	if len(s.filename) == 0 {
+		return nil
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -108,10 +113,15 @@ func (s *System) Startup() error {
 
 // Shutdown - збереження світу
 func (s *System) Shutdown() error {
+
 	log.Println("System begin Shutdown")
 	// 1. Зупинка всіх процесів
 	s.cancel()
 	s.wg.Wait()
+
+	if len(s.filename) == 0 {
+		return nil
+	}
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -214,7 +224,7 @@ func (s *System) Send(ctx context.Context, fromID, toID string, payload any) err
 	select {
 	case ch <- env:
 		// Успішно поклали в канал
-		log.Println("Send Success:", env)
+		//log.Println("Send Success:", env)
 		return nil
 
 	case <-ctx.Done():

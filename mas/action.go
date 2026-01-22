@@ -9,7 +9,7 @@ import (
 type Action func(agent Agent, sys *System) error
 
 // Send створює дію відправки повідомлення
-func Send(to, payload string) Action {
+func Send(to string, payload any) Action {
 	return func(a Agent, sys *System) error {
 		// Тут ми використовуємо контекст Background, але в ідеалі треба прокидувати з Run
 		return sys.Send(context.Background(), a.ID(), to, payload)
