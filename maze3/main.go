@@ -19,7 +19,7 @@ func main() {
 
 	// 1. Створюємо Fyne App
 	myApp := app.New()
-	w := myApp.NewWindow("Maze 1")
+	w := myApp.NewWindow("Maze 3")
 
 	// 2. Створюємо Data Binding (спільна пам'ять для UI і Агента)
 	logData := binding.NewString()
@@ -39,60 +39,7 @@ func main() {
 		if text == "" {
 			return
 		}
-		/*
-			// --- ДОДАЄМО В ІСТОРІЮ ---
-			inputEntry.AddCommand(text)
-			// --------------------------
 
-			// 1. Розбиваємо рядок на слова (ігноруємо зайві пробіли)
-			parts := strings.Fields(text)
-			if len(parts) < 2 {
-				appendLog(logData, "[GUI Error]: Format: TARGET COMMAND [ARGS...]")
-				return
-			}
-
-			targetID := parts[0]
-			command := parts[1] // Наприклад "ORDER", "STOP", "START"
-
-			var payload any // Це те, що ми відправимо (string або struct)
-
-			// 2. Визначаємо тип повідомлення на основі команди
-			switch command {
-			case "ORDER", "TASK":
-				// Очікуємо формат: worker-1 ORDER job-100 5
-				if len(parts) < 4 {
-					appendLog(logData, "[GUI Error]: Use: TARGET ORDER <TaskID> <Amount>")
-					return
-				}
-				taskID := parts[2]
-				amount, err := strconv.Atoi(parts[3])
-				if err != nil {
-					appendLog(logData, "[GUI Error]: Amount must be a number")
-					return
-				}
-				// Створюємо структуру!
-				payload = WorkOrder{
-					TaskID: taskID,
-					Amount: amount,
-				}
-
-			default:
-				// Для всіх інших команд (STOP, START, TICK)
-				// відправляємо просто як рядок (для ManagerBot)
-				payload = command
-			}
-
-			// 3. Відправка
-			// Ми відправляємо payload (який може бути структурою або рядком)
-			err := sys.Send(context.Background(), "admin", targetID, payload)
-
-			if err != nil {
-				appendLog(logData, fmt.Sprintf("[Error]: %v", err))
-			} else {
-				inputEntry.SetText("")
-				// Для красивого логу показуємо, що саме відправили
-				appendLog(logData, fmt.Sprintf("[admin -> %s]: %v", targetID, payload))
-			} */
 	}
 
 	// Для краси загорнемо в скрол
@@ -132,15 +79,6 @@ func main() {
 	adminAgent := NewLogWindowAgent("admin", logData)
 	sys.Spawn(adminAgent)
 
-	// 1. Створюємо Лабіринт
-	// S - Start (1,1), E - End (1,3)
-	/* simpleMap := []string{
-		"#####",
-		"#S..#",
-		"###.#",
-		"#E..#",
-		"#####",
-	} */
 	wolkerID := "walker-1"
 
 	if _, ok := sys.GetAgent("maze-1"); !ok {

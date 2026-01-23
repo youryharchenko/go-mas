@@ -14,6 +14,8 @@ type System struct {
 	agents   map[string]Agent         // Тут живуть типи
 	registry map[string]chan Envelope // Тут живуть канали (runtime)
 
+	parent *System
+
 	filename string // Куди зберігати dump
 
 	ctx    context.Context
@@ -59,6 +61,24 @@ func NewSystem(opts ...Option) *System {
 	}
 
 	return s
+}
+
+// CreateSubsystem створює дочірню систему (для окремої вкладки)
+func (s *System) CreateSubsystem(opts ...Option) *System {
+	defaultCtx, defaultCancel := context.WithCancel(context.Background())
+	ss := &System{
+		agents:   make(map[string]Agent),
+		registry: make(map[string]chan Envelope),
+		parent:   s, // Запам'ятовуємо, хто створив
+		ctx:      defaultCtx,
+		cancel:   defaultCancel,
+	}
+	// 2. Застосування опцій користувача
+	for _, opt := range opts {
+		opt(ss)
+	}
+
+	return ss
 }
 
 func (s *System) Context() context.Context {
@@ -160,6 +180,8 @@ func (s *System) Spawn(agent Agent) error {
 		return fmt.Errorf("spawn failed: agent with ID '%s' already exists", id)
 	}
 
+	agent.SetSystem(s)
+
 	// 2. Ініціалізація інфраструктури (Транспорт)
 	// Створюємо буферизований канал. Розмір буфера (100) можна винести в конфіг,
 	// але для MVP це нормальне значення, щоб згладжувати пікові навантаження.
@@ -209,7 +231,11 @@ func (s *System) Send(ctx context.Context, fromID, toID string, payload any) err
 	s.mu.RUnlock()
 
 	if !exists {
-		return fmt.Errorf("send failed: agent '%s' not found", toID)
+		if s.parent != nil {
+			return s.parent.Send(ctx, fromID, toID, payload)
+		} else {
+			return fmt.Errorf("send failed: agent '%s' not found", toID)
+		}
 	}
 
 	// 2. Формування конверта

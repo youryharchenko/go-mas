@@ -13,6 +13,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"github.com/youryharchenko/go-mas/mas"
+	"github.com/youryharchenko/go-mas/ui"
 )
 
 func main() {
@@ -31,11 +32,11 @@ func main() {
 	// 3. Створюємо UI елемент, прив'язаний до даних
 	// Label автоматично перемалюється, коли зміниться logData
 	//label := widget.NewLabelWithData(logData)
-	outputEntry := NewLogEntry()
+	outputEntry := ui.NewLogEntry()
 	outputEntry.Bind(logData)
 	outputEntry.TextStyle = fyne.TextStyle{Monospace: true}
 
-	inputEntry := NewHistoryEntry()
+	inputEntry := ui.NewHistoryEntry()
 	inputEntry.PlaceHolder = "Enter command: TARGET PAYLOAD (use Up/Down for history)..."
 
 	inputEntry.OnSubmitted = func(text string) {
@@ -123,10 +124,10 @@ func main() {
 
 	// --- МАГІЯ ТУТ ---
 	// Створюємо агента і даємо йому в руки binding
-	guiAgent := NewLogWindowAgent("console", logData)
+	guiAgent := ui.NewLogWindowAgent("console", logData)
 	sys.Spawn(guiAgent)
 
-	adminAgent := NewLogWindowAgent("admin", logData)
+	adminAgent := ui.NewLogWindowAgent("admin", logData)
 	sys.Spawn(adminAgent)
 
 	if _, exists := sys.GetAgent("worker-1"); !exists {

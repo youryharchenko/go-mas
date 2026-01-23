@@ -5,10 +5,6 @@ import "context"
 // Agent - базовий інтерфейс
 type Agent interface {
 	ID() string
-	//Start(ctx context.Context) error
-	// Receive - це точка входу для повідомлень
-	//Receive(ctx context.Context, env Envelope) error
-	//Process(ctx context.Context, env Envelope) error
 
 	// Bind викликається Системою при старті (Spawn або Restore).
 	// Тут агент отримує свій канал (Inbox) та посилання на Систему.
@@ -19,4 +15,6 @@ type Agent interface {
 
 	// Агент зобов'язаний мати "Мозок"
 	Plan(ctx context.Context, msg Envelope) ([]Action, error)
+
+	SetSystem(sys *System)
 }

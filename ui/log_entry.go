@@ -1,4 +1,4 @@
-package main
+package ui
 
 import (
 	"fyne.io/fyne/v2"
@@ -9,6 +9,7 @@ import (
 // але дозволяє ТІЛЬКИ копіювати текст, а не писати.
 type LogEntry struct {
 	widget.Entry
+	//scroller *container.Scroll
 }
 
 func NewLogEntry() *LogEntry {
@@ -19,6 +20,10 @@ func NewLogEntry() *LogEntry {
 	e.Wrapping = fyne.TextWrapWord                // Перенос слів
 	return e
 }
+
+/* func (e *LogEntry) BindScroller(s *container.Scroll) {
+	e.scroller = s
+} */
 
 // TypedRune викликається, коли ви вводите букви.
 // Ми робимо його пустим -> введення ігнорується.

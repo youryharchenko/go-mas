@@ -37,7 +37,7 @@ func init() {
 }
 
 func main() {
-	sys := mas.NewSystem()
+	sys := mas.NewSystem(mas.WithPersistence("world.gob"))
 
 	// 1. Спроба відновити попередній стан
 	if err := sys.Startup(); err != nil {

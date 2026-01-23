@@ -26,10 +26,9 @@ func (b *BaseAgent) Bind(sys *System, inbox <-chan Envelope, me Agent) {
 	b.me = me
 }
 
-// // SetPlanner дозволяє змінювати поведінку "на льоту"
-// func (b *BaseAgent) SetPlanner(p Planner) {
-// 	b.planner = p
-// }
+func (b *BaseAgent) SetSystem(sys *System) {
+	b.sys = sys
+}
 
 // Run - тепер це стандартний цикл для всіх агентів
 func (b *BaseAgent) Run(ctx context.Context) error {
@@ -43,22 +42,6 @@ func (b *BaseAgent) Run(ctx context.Context) error {
 		select {
 
 		case msg := <-b.inbox:
-			/* log.Println("BaseAgent recive msg:", msg.From, "->", msg.To)
-			// 1. ПЛАНУВАННЯ
-			// Тут ми викликаємо мозок. State передаємо як 'b' (сам агент) або окреме поле.
-			actions, err := b.me.Plan(ctx, msg)
-			if err != nil {
-				fmt.Printf("Agent %s error planning: %v\n", b.IDVal, err)
-				continue
-			}
-
-			// 2. ВИКОНАННЯ
-			for _, action := range actions {
-				// Тут можна вставити Middleware (Interceptors) для дій!
-				if err := action(b.me, b.sys); err != nil {
-					fmt.Printf("Agent %s action failed: %v\n", b.IDVal, err)
-				}
-			} */
 			b.processMessage(ctx, msg)
 		case <-ctx.Done():
 			log.Println("BaseAgent done:", b.ID())

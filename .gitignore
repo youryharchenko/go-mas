@@ -32,6 +32,7 @@ go.work.sum
 # .vscode/
 
 counter/mas_state.gob
+counter/world.gob
 counter/counter
 boss/world.gob
 boss/boss
@@ -42,4 +43,5 @@ maze1/maze1
 maze1/mas_state.gob
 maze2/maze2
 maze3/maze3
+lab/lab
 
