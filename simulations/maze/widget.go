@@ -3,7 +3,6 @@ package maze
 import (
 	"fmt"
 	"image/color"
-	"sync"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -19,7 +18,7 @@ type MazeBoard struct {
 	WalkerX int
 	WalkerY int
 
-	Visited *sync.Map
+	Visited map[string]bool
 }
 
 func NewMazeBoard() *MazeBoard {
@@ -29,7 +28,7 @@ func NewMazeBoard() *MazeBoard {
 }
 
 // UpdateState оновлює дані і перемальовує віджет
-func (m *MazeBoard) UpdateState(grid []string, wx, wy int, visited *sync.Map) {
+func (m *MazeBoard) UpdateState(grid []string, wx, wy int, visited map[string]bool) {
 
 	m.Grid = grid
 	m.WalkerX = wx
@@ -98,8 +97,8 @@ func (r *mazeRenderer) Refresh() {
 			// Ключ для перевірки відвідування
 			key := fmt.Sprintf("%d,%d", x, y)
 			isVisited := false
-			if v, ok := r.board.Visited.Load(key); ok {
-				isVisited = v.(bool)
+			if v, ok := r.board.Visited[key]; ok {
+				isVisited = v
 			}
 
 			// КОЛЬОРИ

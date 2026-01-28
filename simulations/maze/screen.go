@@ -3,6 +3,7 @@ package maze
 import (
 	"context"
 	"encoding/gob"
+	"fmt"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -24,55 +25,29 @@ func NewScreen(parentSys *mas.System, logData binding.String) fyne.CanvasObject 
 	// 2. Створюємо графічний віджет
 	board := NewMazeBoard()
 
-	// 3. Ініціалізація агентів
-	// Тут ми використовуємо ваші структури.
-	// Щоб код скомпілювався, переконайтеся, що GenerateMaze доступна
-	/* initialMap := []string{
-		"#####",
-		"#S..#",
-		"#...#",
-		"#..E#",
-		"#####",
-	} */
-	// Якщо у вас є функція генерації: initialMap = models.GenerateMaze(15, 15)
-	//initialMap := GenerateMaze(15, 15)
-
-	// Створюємо та спавнимо агентів (псевдокод, підставте ваші реальні типи)
-	/*
-		mazeAgent := &models.MazeAgent{
-			BaseAgent: mas.BaseAgent{IDVal: "maze-1"},
-			Grid: initialMap,
-			// ... інші поля
-		}
-		mazeSys.Spawn(mazeAgent)
-
-		walkerAgent := &models.PlannerWalker{
-			BaseAgent: mas.BaseAgent{IDVal: "walker-1"},
-			MazeID: "maze-1",
-			// ... інші поля
-		}
-		mazeSys.Spawn(walkerAgent)
-	*/
-
 	wolkerID := "walker-1"
 	if _, ok := mazeSys.GetAgent("maze-1"); !ok {
 		initialMap := GenerateMaze(15, 15)
 		mazeSys.Spawn(&MazeAgent{
-			BaseAgent:  mas.BaseAgent{IDVal: "maze-1"},
-			Grid:       initialMap,
-			WalkerPosX: 1, // Координати S
-			WalkerPosY: 1,
-			WalkerID:   wolkerID,
+			BaseAgent: mas.BaseAgent{IDVal: "maze-1"},
+			Grid:      initialMap,
+			Width:     15,
+			Height:    15,
+			WalkerPos: MazeState{X: 1, Y: 1},
+			//CurrentX:  1, // Координати S
+			//CurrentY:  1,
+			WalkerID: wolkerID,
 		})
 	}
 
 	// 2. Створюємо Шукача
 	if _, ok := mazeSys.GetAgent(wolkerID); !ok {
 		mazeSys.Spawn(&PlannerWalker{
-			BaseAgent: mas.BaseAgent{IDVal: wolkerID},
-			CurrentX:  1,
-			CurrentY:  1,
-			MazeID:    "maze-1",
+			BaseAgent:    mas.BaseAgent{IDVal: wolkerID},
+			CurrentState: MazeState{X: 1, Y: 1},
+			//CurrentX:  1,
+			//CurrentY:  1,
+			MazeID: "maze-1",
 		})
 	}
 
@@ -98,12 +73,25 @@ func NewScreen(parentSys *mas.System, logData binding.String) fyne.CanvasObject 
 				//board.UpdateState(realMaze.Grid, realWalker.CurrentX, realWalker.CurrentY)
 				//log.Println("realWalker:", realWalker.CurrentX, realWalker.CurrentY)
 				//log.Println("realMaze:", realMaze.WalkerPosX, realMaze.WalkerPosY)
-				board.UpdateState(realMaze.Grid, realMaze.WalkerPosX, realMaze.WalkerPosY, &realWalker.Visited)
+
+				// Підготовка даних пам'яті для UI
+				uiVisited := make(map[string]bool)
+
+				// Читаємо з sync.Map через наш helper Range
+				if realWalker.Memory != nil {
+					realWalker.Memory.Range(func(key, value any) bool {
+						// Ключ у мапі тепер MazeState {X,Y}
+						if s, ok := key.(MazeState); ok {
+							k := fmt.Sprintf("%d,%d", s.X, s.Y)
+							uiVisited[k] = true
+						}
+						return true
+					})
+				}
+
+				board.UpdateState(realMaze.Grid, realWalker.CurrentState.X, realWalker.CurrentState.Y, uiVisited)
 			}
 
-			// ТИМЧАСОВА ЗАГЛУШКА ДЛЯ ТЕСТУ (Видаліть це, коли розкоментуєте код вище)
-			// Просто рухаємо точку
-			//board.UpdateState(initialMap, 1, 1)
 		}
 	}()
 
@@ -119,19 +107,41 @@ func NewScreen(parentSys *mas.System, logData binding.String) fyne.CanvasObject 
 		}
 	}()
 
-	// 4. Кнопки керування
-	btnReset := widget.NewButton("New Maze", func() {
+	// Кнопка "Новий лабіринт"
+	btnNew := widget.NewButton("New Maze", func() {
 		mazeSys.Send(context.Background(), "gui", "maze-1", "NEW")
 	})
+
+	// Кнопка "Скинути пам'ять"
+	btnResetWalker := widget.NewButton("Reset Memory", func() {
+		mazeSys.Send(context.Background(), "gui", "walker-1", "RESET")
+	})
+
+	// --- НОВЕ: Вибір Стратегії ---
+	policySelect := widget.NewSelect([]string{"DFS", "AStar", "BFS", "Random"}, func(selected string) {
+		// Відправляємо команду агенту змінити мозок
+		// Формат payload: "POLICY:DFS"
+		cmd := "POLICY:" + selected
+		mazeSys.Send(context.Background(), "gui", "walker-1", cmd)
+	})
+	policySelect.SetSelected("DFS") // Значення за замовчуванням
+
+	// Панель інструментів (додаємо селект)
+	toolbar := container.NewHBox(
+		btnNew,
+		btnResetWalker,
+		widget.NewLabel("Strategy:"), // Підпис
+		policySelect,
+	)
 
 	// 5. Компонування
 	// Board розтягується на весь вільний простір
 	content := container.NewBorder(
-		nil,      // Top
-		btnReset, // Bottom
-		nil,      // Left
-		nil,      // Right
-		board,    // Center
+		toolbar, // Top
+		nil,     // Bottom
+		nil,     // Left
+		nil,     // Right
+		board,   // Center
 	)
 
 	gob.Register(&MoveRequest{})

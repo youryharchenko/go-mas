@@ -20,6 +20,8 @@ type BaseAgent struct {
 
 func (b *BaseAgent) ID() string { return b.IDVal }
 
+func (b *BaseAgent) Sys() *System { return b.sys }
+
 func (b *BaseAgent) Bind(sys *System, inbox <-chan Envelope, me Agent) {
 	b.sys = sys
 	b.inbox = inbox
